@@ -152,7 +152,7 @@ def load_json(path: Path) -> ConfigBox:
 
 
 @ensure_annotations
-def save_bin(data: Any, path: Path) -> None:
+def save_bin(data: Any, path: Path):
     """
     Saves data to a binary file using joblib.
 
@@ -310,3 +310,50 @@ def encode_image_to_base64(image_path: Union[str, Path]) -> str:
             return base64_string
     except OSError as e:
         raise OSError(f"Unable to read image file at: {filepath}. Error: {e}") from e
+
+
+import zipfile
+
+@ensure_annotations
+def extract_zip(zip_file_path: str, extract_dir: str):
+    """
+    Extracts a ZIP archive to a specified directory.
+
+    This function takes the path to a ZIP archive and the desired extraction directory. 
+
+    Args:
+        zip_file_path (Union[str, Path]): Path to the ZIP file to extract.
+        extract_dir (Union[str, Path]): Path to the directory where files should be extracted.
+
+    Raises:
+        FileNotFoundError: If the ZIP file or the extraction directory does not exist.
+        zipfile.BadZipFile: If the ZIP archive is corrupted or invalid.
+        PermissionError: If there are insufficient permissions to write to the extraction directory.
+        NotADirectoryError: If the specified extract_dir is not a directory.
+        Exception: For any other unexpected errors during extraction.
+    """
+
+    zip_file_path = Path(zip_file_path)
+    extract_dir = Path(extract_dir)
+
+    if not zip_file_path.exists():
+        raise FileNotFoundError(f"ZIP file not found: {zip_file_path}")
+
+    if not extract_dir.exists():
+        raise FileNotFoundError(f"Extraction directory not found: {extract_dir}")
+
+    if not extract_dir.is_dir():
+        raise NotADirectoryError(f"Specified path is not a directory: {extract_dir}")
+
+    try:
+        with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+            zip_ref.extractall(extract_dir)
+        logger.info(f"Extracted ZIP file '{zip_file_path}' to '{extract_dir}'")
+
+    except zipfile.BadZipFile as e:
+        raise zipfile.BadZipFile(f"Invalid or corrupted ZIP file: {zip_file_path}, Error: {e}") from e
+    except PermissionError as e:
+        raise PermissionError(f"Permission denied when extracting to: {extract_dir}, Error: {e}") from e
+    except Exception as e:  
+        logger.exception(f"An unexpected error occurred while extracting: {e}")
+        raise e
