@@ -44,7 +44,7 @@ def read_yaml(path_to_yaml: Path) -> ConfigBox:
         raise FileNotFoundError(f"YAML file not found at: {path_to_yaml}")
 
     except BoxValueError as e:  
-        raise ValueError(f"Invalid YAML file: {e}") from e  
+        raise ValueError(f"YAML file is empty: {e}") from e  
 
     except yaml.YAMLError as e:  
         raise yaml.YAMLError(f"Error parsing YAML: {e}") from e
